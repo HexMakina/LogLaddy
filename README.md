@@ -3,6 +3,8 @@
 The LogLaddy is an implementation of the PSR-3 Logger Interface, but aimed at user interface messaging
 
 [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/HexMakina/LogLaddy/badges/quality-score.png?b=main)](https://scrutinizer-ci.com/g/HexMakina/LogLaddy/?branch=main)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 
 # Usage
 
