@@ -1,9 +1,9 @@
 # LogLaddy
-The LogLaddy is an implementation of the PSR-3 Logger Interface
+The LogLaddy is an implementation of the PSR-3 Logger Interface, but aimed at user interface messaging
 
 
 
-# USAGE
+# Usage
 
 To catch errors and exceptions:
 
