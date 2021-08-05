@@ -25,7 +25,7 @@ class LogLaddy implements LoggerInterface
 
   /**
    * Everything went fine, which is always nice.
-   * LogLaddy, being born yesterday, is a bit more optimistic than PSRLog
+   * LogLaddy is a bit more optimistic than PSRLog
    * @param string $message
    * @param array  $context
    *
