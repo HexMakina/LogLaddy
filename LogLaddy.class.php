@@ -6,7 +6,7 @@
  * Behind all things are reasons. Reasons can even explain the absurd.
  *
  * LogLaddy manages error reporting
- * PSR-3 Compliant, where NOTICE is to be read as SUCCESS
+ * PSR-3 Compliant, with a NICE bonus
  */
 
 namespace HexMakina\Logger;
