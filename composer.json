@@ -1,0 +1,24 @@
+{
+    "name": "hexmakina/debugger",
+    "description": "LogLaddy is a PSR-3 Logger Interface implementation, but aimed at user interface messaging",
+    "type": "package",
+    "require": {
+        "php": ">=7.4",
+        "psr/log": "1.1.2",
+        "hexmakina/debugger": "0.0.*"
+    },
+    "license": "mit",
+    "authors": [
+        {
+            "name": "HexMakina",
+            "email": "touch@hexmakina.be",
+            "homepage": "https://hexmakina.be"
+        }
+    ],
+    "minimum-stability": "dev",
+    "autoload": {
+        "psr-4": {
+            "HexMakina\\Logger\\": "/"
+        }
+    }
+}
