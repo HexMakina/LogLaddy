@@ -9,7 +9,7 @@
  * PSR-3 Compliant, with a NICE bonus
  */
 
-namespace HexMakina\Logger;
+namespace HexMakina\LogLaddy;
 
 class LogLaddy implements LoggerInterface
 {
