@@ -1,5 +1,5 @@
 <?php
-namespace HexMakina\Logger;
+namespace HexMakina\LogLaddy;
 
 
 /**
