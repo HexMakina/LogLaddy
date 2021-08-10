@@ -46,8 +46,9 @@ class LogLaddy implements LoggerInterface
   }
 
   // ----------------------------------------------------------- Static handlers for throwables, use set_exception_handler('\HexMakina\kadro\Logger\LogLaddy::exception_handler');
-  public static function exception_handler($throwable)
+  public static function exception_handler(\Throwable $throwable)
   {
+    $context = [];
     $context['text'] = $throwable->getMessage();
     $context['file'] = $throwable->getFile();
     $context['line'] = $throwable->getLine();
@@ -55,15 +56,13 @@ class LogLaddy implements LoggerInterface
     $context['class'] = get_class($throwable);
     $context['trace'] = $throwable->getTrace();
 
+    $lad = new LogLaddy();
     if(is_subclass_of($throwable, 'Error') || get_class($throwable) === 'Error')
-      (new LogLaddy())->alert(self::INTERNAL_ERROR, $context);
+      $lad->alert(self::INTERNAL_ERROR, $context);
     elseif(is_subclass_of($throwable, 'Exception') || get_class($throwable) === 'Exception')
-      (new LogLaddy())->notice(self::USER_EXCEPTION, $context);
+      $lad->notice(self::USER_EXCEPTION, $context);
     else
-    {
-      die('This Throwable is not an Error or an Exception. This is unfortunate.');
-    }
-
+      $lad->critical('Caught a Throwable that is not an Error or an Exception. This breaks everything.', $context);
   }
 
   public function system_halted($level)
@@ -105,9 +104,6 @@ class LogLaddy implements LoggerInterface
     {// --- Handles user messages, through SESSION storage
       $this->report_to_user($level, $message, $context);
     }
-
-    // --- may of may not show errors, depends on environment
-
   }
 
   public static function HTTP_500($display_error)
