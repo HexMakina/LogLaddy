@@ -1,6 +1,6 @@
 <?php
-namespace HexMakina\LogLaddy;
 
+namespace HexMakina\LogLaddy;
 
 /**
  * Extends PSR log levels to include success
