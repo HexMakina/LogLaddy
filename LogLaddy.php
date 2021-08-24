@@ -39,11 +39,24 @@ class LogLaddy implements LoggerInterface
         $this->log(LogLevel::NICE, $message, $context);
     }
 
+
+    public function set_handlers()
+    {
+        set_error_handler([$this, 'error_handler']);
+        set_exception_handler([$this, 'exception_handler']);
+    }
+
+    public function restore_handlers()
+    {
+        restore_error_handler();
+        restore_exception_handler();
+    }
+
     /*
-    * static handlers for error,
+    * handler for errors
     * use set_error_handler('\HexMakina\kadro\Logger\LogLaddy::error_handler')
     */
-    public static function error_handler($level, $message, $file = '', $line = 0)
+    public function error_handler($level, $message, $file = '', $line = 0)
     {
         $loglevel = self::map_error_level_to_log_level($level);
 
@@ -54,17 +67,15 @@ class LogLaddy implements LoggerInterface
     * static handlers for throwables,
     * use set_exception_handler('\HexMakina\kadro\Logger\LogLaddy::exception_handler');
     */
-    public static function exception_handler(\Throwable $throwable)
+    public function exception_handler(\Throwable $throwable)
     {
-        $lad = new LogLaddy();
-
         if ($throwable instanceof \Exception) {
-            $lad->alert(self::USER_EXCEPTION, [$throwable]);
+            $this->alert(self::USER_EXCEPTION, [$throwable]);
         } elseif ($throwable instanceof \Error) {
-            $lad->notice(self::INTERNAL_ERROR, [$throwable]);
+            $this->notice(self::INTERNAL_ERROR, [$throwable]);
         }
         else {
-            $lad->critical('Caught an unknown Throwable. This breaks everything.', [$throwable]);
+            $this->critical('Caught an unknown Throwable. This breaks everything.', [$throwable]);
         }
     }
 
@@ -91,10 +102,10 @@ class LogLaddy implements LoggerInterface
             $this->has_halting_messages = true;
             if (($context = current($context)) !== false) {
                 $display_error = Debugger::formatThrowable($context);
+                error_log($display_error);
+                $display_error .= Debugger::tracesToString($context->getTrace(), false);
+                self::HTTP_500($display_error);
             }
-            error_log($display_error);
-            $display_error .= Debugger::tracesToString($context['trace'], false);
-            self::HTTP_500($display_error);
         } elseif ($this->system_halted($level)) { // analyses error level
             $display_error = sprintf(
                 PHP_EOL . '%s in file %s:%d' . PHP_EOL . '%s',
@@ -114,7 +125,7 @@ class LogLaddy implements LoggerInterface
 
     public static function HTTP_500($display_error)
     {
-        self::displayErrors($display_error);
+        Debugger::displayErrors($display_error);
         http_response_code(500);
         die;
     }
