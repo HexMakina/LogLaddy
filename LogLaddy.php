@@ -59,8 +59,7 @@ class LogLaddy implements LoggerInterface
     public function error_handler($level, $message, $file = '', $line = 0)
     {
         $loglevel = self::map_error_level_to_log_level($level);
-
-        (new LogLaddy())->$loglevel($message, ['file' => $file, 'line' => $line, 'trace' => debug_backtrace()]);
+        $this->$loglevel($message, ['file' => $file, 'line' => $line, 'trace' => debug_backtrace()]);
     }
 
     /*
@@ -102,8 +101,8 @@ class LogLaddy implements LoggerInterface
             $this->has_halting_messages = true;
             if (($context = current($context)) !== false) {
                 $display_error = Debugger::formatThrowable($context);
+                $display_error .= PHP_EOL.Debugger::tracesToString($context->getTrace(), false);
                 error_log($display_error);
-                $display_error .= Debugger::tracesToString($context->getTrace(), false);
                 self::HTTP_500($display_error);
             }
         } elseif ($this->system_halted($level)) { // analyses error level
@@ -116,7 +115,8 @@ class LogLaddy implements LoggerInterface
             );
 
             error_log($display_error);
-            $display_error .= Debugger::tracesToString($context['trace'], true);
+
+            $display_error .= PHP_EOL.Debugger::tracesToString($context['trace'], true);
             self::HTTP_500($display_error);
         } else {// --- Handles user messages, through SESSION storage
             $this->report_to_user($level, $message, $context);
@@ -127,7 +127,6 @@ class LogLaddy implements LoggerInterface
     {
         Debugger::displayErrors($display_error);
         http_response_code(500);
-        die;
     }
   // -- Allows to know if script must be halted after fatal error
   // TODO NEH.. not good
