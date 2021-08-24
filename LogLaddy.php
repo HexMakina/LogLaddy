@@ -39,7 +39,10 @@ class LogLaddy implements LoggerInterface
         $this->log(LogLevel::NICE, $message, $context);
     }
 
-  // -- Static handlers for error, use set_error_handler('\HexMakina\kadro\Logger\LogLaddy::error_handler')
+    /*
+    * static handlers for error,
+    * use set_error_handler('\HexMakina\kadro\Logger\LogLaddy::error_handler')
+    */
     public static function error_handler($level, $message, $file = '', $line = 0)
     {
         $loglevel = self::map_error_level_to_log_level($level);
@@ -47,7 +50,10 @@ class LogLaddy implements LoggerInterface
         (new LogLaddy())->$loglevel($message, ['file' => $file, 'line' => $line, 'trace' => debug_backtrace()]);
     }
 
-  // -- Static handlers for throwables, use set_exception_handler('\HexMakina\kadro\Logger\LogLaddy::exception_handler');
+    /*
+    * static handlers for throwables,
+    * use set_exception_handler('\HexMakina\kadro\Logger\LogLaddy::exception_handler');
+    */
     public static function exception_handler(\Throwable $throwable)
     {
         $lad = new LogLaddy();
@@ -57,26 +63,9 @@ class LogLaddy implements LoggerInterface
         } elseif ($throwable instanceof \Error) {
             $lad->notice(self::INTERNAL_ERROR, [$throwable])
             else {
-                $lad->critical('Caught a Throwable that is not an \Error or an \Exception. This breaks everything.', [$throwable]);
+                $lad->critical('Caught an unknown Throwable. This breaks everything.', [$throwable]);
             }
         }
-
-        // $context = [];
-        // $context['text'] = $throwable->getMessage();
-        // $context['file'] = $throwable->getFile();
-        // $context['line'] = $throwable->getLine();
-        // $context['code'] = $throwable->getCode();
-        // $context['class'] = get_class($throwable);
-        // $context['trace'] = $throwable->getTrace();
-
-        //     $lad = new LogLaddy();
-        //     if (is_subclass_of($throwable, 'Error') || get_class($throwable) === 'Error') {
-        //         $lad->alert(self::INTERNAL_ERROR, $context);
-        //     } elseif (is_subclass_of($throwable, 'Exception') || get_class($throwable) === 'Exception') {
-        //         $lad->notice(self::USER_EXCEPTION, $context);
-        //     } else {
-        //         $lad->critical('Caught a Throwable that is not an Error or an Exception. This breaks everything.', $context);
-        //     }
     }
 
     public function system_halted($level)
@@ -107,7 +96,14 @@ class LogLaddy implements LoggerInterface
             $display_error .= Debugger::tracesToString($context['trace'], false);
             self::HTTP_500($display_error);
         } elseif ($this->system_halted($level)) { // analyses error level
-            $display_error = sprintf(PHP_EOL . '%s in file %s:%d' . PHP_EOL . '%s', $level, Debugger::formatFilename($context['file']), $context['line'], $message);
+            $display_error = sprintf(
+                PHP_EOL . '%s in file %s:%d' . PHP_EOL . '%s',
+                $level,
+                Debugger::formatFilename($context['file']),
+                $context['line'],
+                $message
+            );
+
             error_log($display_error);
             $display_error .= Debugger::tracesToString($context['trace'], true);
             self::HTTP_500($display_error);
