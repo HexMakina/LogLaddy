@@ -61,10 +61,10 @@ class LogLaddy implements LoggerInterface
         if ($throwable instanceof \Exception) {
             $lad->alert(self::USER_EXCEPTION, [$throwable]);
         } elseif ($throwable instanceof \Error) {
-            $lad->notice(self::INTERNAL_ERROR, [$throwable])
-            else {
-                $lad->critical('Caught an unknown Throwable. This breaks everything.', [$throwable]);
-            }
+            $lad->notice(self::INTERNAL_ERROR, [$throwable]);
+        }
+        else {
+            $lad->critical('Caught an unknown Throwable. This breaks everything.', [$throwable]);
         }
     }
 
