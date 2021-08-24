@@ -12,16 +12,18 @@
 
 namespace HexMakina\LogLaddy;
 
-use \HexMakina\Debugger\Debugger;   // Debugger
+use HexMakina\Debugger\Debugger;
+   
+// Debugger
 
 class LogLaddy implements LoggerInterface
 {
-    use \Psr\Log\LoggerTrait;           // PSR implementation
+    use Psr\Log\LoggerTrait;           // PSR implementation
 
-    public const REPORTING_USER = 'user_messages';
-    public const INTERNAL_ERROR = 'error';
-    public const USER_EXCEPTION = 'exception';
-    public const LOG_LEVEL_SUCCESS = 'ok';
+public const REPORTING_USER = 'user_messages';
+public const INTERNAL_ERROR = 'error';
+public const USER_EXCEPTION = 'exception';
+public const LOG_LEVEL_SUCCESS = 'ok';
 
     private $has_halting_messages = false;
 
@@ -33,38 +35,40 @@ class LogLaddy implements LoggerInterface
    *
    * @return void
    */
-    public function nice($message, array $context = array())
-    {
-        $this->log(LogLevel::NICE, $message, $context);
-    }
+public function nice($message, array $context = array())
+{
+    $this->log(LogLevel::NICE, $message, $context);
+}
 
   // -- Static handlers for error, use set_error_handler('\HexMakina\kadro\Logger\LogLaddy::error_handler')
-    public static function error_handler($level, $message, $file = '', $line = 0)
-    {
-        $loglevel = self::map_error_level_to_log_level($level);
+public static function error_handler($level, $message, $file = '', $line = 0)
+{
+    $loglevel = self::map_error_level_to_log_level($level);
 
-        (new LogLaddy())->$loglevel($message, ['file' => $file, 'line' => $line, 'trace' => debug_backtrace()]);
-    }
+    (new LogLaddy())->$loglevel($message, ['file' => $file, 'line' => $line, 'trace' => debug_backtrace()]);
+}
 
   // -- Static handlers for throwables, use set_exception_handler('\HexMakina\kadro\Logger\LogLaddy::exception_handler');
-    public static function exception_handler(\Throwable $throwable)
-    {
-        $lad = new LogLaddy();
+public static function exception_handler(\Throwable $throwable)
+{
+    $lad = new LogLaddy();
 
-        if($throwable instanceof \Exception)
-          $lad->alert(self::USER_EXCEPTION, [$throwable]);
-        elseif($throwable instanceof \Error)
-          $lad->notice(self::INTERNAL_ERROR, [$throwable])
-        else
-          $lad->critical('Caught a Throwable that is not an \Error or an \Exception. This breaks everything.', [$throwable]);
+    if ($throwable instanceof \Exception) {
+        $lad->alert(self::USER_EXCEPTION, [$throwable]);
+    } elseif ($throwable instanceof \Error) {
+        $lad->notice(self::INTERNAL_ERROR, [$throwable])
+        else {
+            $lad->critical('Caught a Throwable that is not an \Error or an \Exception. This breaks everything.', [$throwable]);
+        }
+    }
 
-        // $context = [];
-        // $context['text'] = $throwable->getMessage();
-        // $context['file'] = $throwable->getFile();
-        // $context['line'] = $throwable->getLine();
-        // $context['code'] = $throwable->getCode();
-        // $context['class'] = get_class($throwable);
-        // $context['trace'] = $throwable->getTrace();
+    // $context = [];
+    // $context['text'] = $throwable->getMessage();
+    // $context['file'] = $throwable->getFile();
+    // $context['line'] = $throwable->getLine();
+    // $context['code'] = $throwable->getCode();
+    // $context['class'] = get_class($throwable);
+    // $context['trace'] = $throwable->getTrace();
 
     //     $lad = new LogLaddy();
     //     if (is_subclass_of($throwable, 'Error') || get_class($throwable) === 'Error') {
@@ -96,10 +100,10 @@ class LogLaddy implements LoggerInterface
 
       // --- Handles Throwables (exception_handler())
         if ($message === self::INTERNAL_ERROR || $message === self::USER_EXCEPTION) {
-
             $this->has_halting_messages = true;
-            if(($context = current($context)) !== false)
-              $display_error = Debugger::formatThrowable($context);
+            if (($context = current($context)) !== false) {
+                $display_error = Debugger::formatThrowable($context);
+            }
             error_log($display_error);
             $display_error .= Debugger::tracesToString($context['trace'], false);
             self::HTTP_500($display_error);
