@@ -17,7 +17,7 @@ use HexMakina\Debugger\Debugger;
 
 class LogLaddy implements LoggerInterface
 {
-    use Psr\Log\LoggerTrait;           // PSR implementation
+    use \Psr\Log\LoggerTrait;           // PSR implementation
 
     public const REPORTING_USER = 'user_messages';
     public const INTERNAL_ERROR = 'error';
