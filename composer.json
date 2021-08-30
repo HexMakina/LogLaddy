@@ -5,7 +5,7 @@
     "require": {
         "php": ">=7.0",
         "psr/log": "1.1.2",
-        "hexmakina/debugger": "0.0.*"
+        "hexmakina/debugger": "0.1.*"
     },
     "license": "mit",
     "authors": [
