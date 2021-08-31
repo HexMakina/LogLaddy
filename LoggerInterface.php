@@ -17,9 +17,9 @@ interface LoggerInterface extends \Psr\Log\LoggerInterface
    */
     public function nice($message, array $context = array());
 
-    public function report_to_user($level, $message, $context = []);
-    public function get_user_report();
-    public function clean_user_report();
+    public function reportToUser($level, $message, $context = []);
+    public function getUserReport();
+    public function cleanUserReport();
 
-    public function has_halting_messages();
+    public function hasHaltingMessages();
 }

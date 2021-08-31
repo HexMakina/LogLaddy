@@ -24,7 +24,7 @@ class LogLaddy implements LoggerInterface
     public const USER_EXCEPTION = 'exception';
     public const LOG_LEVEL_SUCCESS = 'ok';
 
-    private $has_halting_messages = false;
+    private $hasHaltingMessages = false;
 
   /**
    * Everything went fine, which is always nice.
@@ -40,13 +40,13 @@ class LogLaddy implements LoggerInterface
     }
 
 
-    public function set_handlers()
+    public function setHandlers()
     {
-        set_error_handler([$this, 'error_handler']);
-        set_exception_handler([$this, 'exception_handler']);
+        set_error_handler([$this, 'errorHandler']);
+        set_exception_handler([$this, 'exceptionHandler']);
     }
 
-    public function restore_handlers()
+    public function restoreHandlers()
     {
         restore_error_handler();
         restore_exception_handler();
@@ -56,9 +56,9 @@ class LogLaddy implements LoggerInterface
     * handler for errors
     * use set_error_handler('\HexMakina\kadro\Logger\LogLaddy::error_handler')
     */
-    public function error_handler($level, $message, $file = '', $line = 0)
+    public function errorHandler($level, $message, $file = '', $line = 0)
     {
-        $loglevel = self::map_error_level_to_log_level($level);
+        $loglevel = self::mapErrorLevelToLogLevel($level);
         $this->$loglevel($message, ['file' => $file, 'line' => $line, 'trace' => debug_backtrace()]);
     }
 
@@ -66,7 +66,7 @@ class LogLaddy implements LoggerInterface
     * static handlers for throwables,
     * use set_exception_handler('\HexMakina\kadro\Logger\LogLaddy::exception_handler');
     */
-    public function exception_handler(\Throwable $throwable)
+    public function exceptionHandler(\Throwable $throwable)
     {
         if ($throwable instanceof \Exception) {
             $this->alert(self::USER_EXCEPTION, [$throwable]);
@@ -78,7 +78,7 @@ class LogLaddy implements LoggerInterface
         }
     }
 
-    public function system_halted($level)
+    public function systemHalted($level)
     {
         switch ($level) {
             case LogLevel::ERROR:
@@ -98,14 +98,14 @@ class LogLaddy implements LoggerInterface
 
       // --- Handles Throwables (exception_handler())
         if ($message === self::INTERNAL_ERROR || $message === self::USER_EXCEPTION) {
-            $this->has_halting_messages = true;
+            $this->hasHaltingMessages = true;
             if (($context = current($context)) !== false) {
                 $display_error = Debugger::formatThrowable($context);
                 $display_error .= PHP_EOL.Debugger::tracesToString($context->getTrace(), false);
                 error_log($display_error);
-                self::HTTP_500($display_error);
+                self::HTTP500($display_error);
             }
-        } elseif ($this->system_halted($level)) { // analyses error level
+        } elseif ($this->systemHalted($level)) { // analyses error level
             $display_error = sprintf(
                 PHP_EOL . '%s in file %s:%d' . PHP_EOL . '%s',
                 $level,
@@ -117,28 +117,28 @@ class LogLaddy implements LoggerInterface
             error_log($display_error);
 
             $display_error .= PHP_EOL.Debugger::tracesToString($context['trace'], true);
-            self::HTTP_500($display_error);
+            self::HTTP500($display_error);
         } else {// --- Handles user messages, through SESSION storage
-            $this->report_to_user($level, $message, $context);
+            $this->reportToUser($level, $message, $context);
         }
     }
 
-    public static function HTTP_500($display_error)
+    public static function HTTP500($display_error)
     {
         Debugger::displayErrors($display_error);
         http_response_code(500);
     }
   // -- Allows to know if script must be halted after fatal error
   // TODO NEH.. not good
-    public function has_halting_messages()
+    public function hasHaltingMessages()
     {
-        return $this->has_halting_messages === true;
+        return $this->hasHaltingMessages === true;
     }
 
   // -- User messages
 
   // -- User messages:add one
-    public function report_to_user($level, $message, $context = [])
+    public function reportToUser($level, $message, $context = [])
     {
         if (!isset($_SESSION[self::REPORTING_USER])) {
             $_SESSION[self::REPORTING_USER] = [];
@@ -152,13 +152,13 @@ class LogLaddy implements LoggerInterface
     }
 
   // -- User messages:get all
-    public function get_user_report()
+    public function getUserReport()
     {
         return $_SESSION[self::REPORTING_USER] ?? [];
     }
 
   // -- User messages:reset all
-    public function clean_user_report()
+    public function cleanUserReport()
     {
         unset($_SESSION[self::REPORTING_USER]);
     }
@@ -174,7 +174,7 @@ class LogLaddy implements LoggerInterface
    * const INFO      = 'info'; // Interesting events. User logs in, SQL logs.
    * const DEBUG     = 'debug'; // Detailed debug information.
   */
-    private static function map_error_level_to_log_level($level): string
+    private static function mapErrorLevelToLogLevel($level): string
     {
       // http://php.net/manual/en/errorfunc.constants.php
         $m = [];
