@@ -4,7 +4,8 @@ The LogLaddy is an implementation of the PSR-3 Logger Interface, but aimed at us
 It relies on \Psr\Log\LoggerTrait and \HexMakina\Debugger\Debugger
 
 [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/HexMakina/LogLaddy/badges/quality-score.png?b=main)](https://scrutinizer-ci.com/g/HexMakina/LogLaddy/?branch=main)
-<img src="https://img.shields.io/badge/PSR-12-brightgreen" alt="PSR-3 Compliant" />
+<img src="https://img.shields.io/badge/PSR-3-brightgreen" alt="PSR-3 Compliant" />
+<img src="https://img.shields.io/badge/PSR-12-brightgreen" alt="PSR-12 Compliant" />
 <img src="https://img.shields.io/badge/PHP-7.0-brightgreen" alt="PHP 7.0 Required" />
 [![License](http://poser.pugx.org/hexmakina/log-laddy/license)](https://packagist.org/packages/hexmakina/log-laddy)
 [![Latest Stable Version](http://poser.pugx.org/hexmakina/log-laddy/v)](https://packagist.org/packages/hexmakina/log-laddy)
