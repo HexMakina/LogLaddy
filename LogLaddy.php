@@ -72,8 +72,7 @@ class LogLaddy implements LoggerInterface
             $this->alert(self::USER_EXCEPTION, [$throwable]);
         } elseif ($throwable instanceof \Error) {
             $this->notice(self::INTERNAL_ERROR, [$throwable]);
-        }
-        else {
+        } else {
             $this->critical('Caught an unknown Throwable. This breaks everything.', [$throwable]);
         }
     }
@@ -101,7 +100,7 @@ class LogLaddy implements LoggerInterface
             $this->hasHaltingMessages = true;
             if (($context = current($context)) !== false) {
                 $display_error = Debugger::formatThrowable($context);
-                $display_error .= PHP_EOL.Debugger::tracesToString($context->getTrace(), false);
+                $display_error .= PHP_EOL . Debugger::tracesToString($context->getTrace(), false);
                 error_log($display_error);
                 self::HTTP500($display_error);
             }
@@ -116,7 +115,7 @@ class LogLaddy implements LoggerInterface
 
             error_log($display_error);
 
-            $display_error .= PHP_EOL.Debugger::tracesToString($context['trace'], true);
+            $display_error .= PHP_EOL . Debugger::tracesToString($context['trace'], true);
             self::HTTP500($display_error);
         } else {// --- Handles user messages, through SESSION storage
             $this->reportToUser($level, $message, $context);
