@@ -13,7 +13,7 @@
 namespace HexMakina\LogLaddy;
 
 // Debugger
-use HexMakina\Debugger\Debugger;
+use \HexMakina\Debugger\Debugger;
 
 class LogLaddy implements LoggerInterface
 {
