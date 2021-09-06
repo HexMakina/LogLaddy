@@ -14,10 +14,12 @@ namespace HexMakina\LogLaddy;
 
 // Debugger
 use \HexMakina\Debugger\Debugger;
+use \HexMakina\StageAgent\StateAgentInterface;
 
 class LogLaddy implements LoggerInterface
 {
     use \Psr\Log\LoggerTrait;           // PSR implementation
+
 
     public const REPORTING_USER = 'user_messages';
     public const INTERNAL_ERROR = 'error';
@@ -25,6 +27,11 @@ class LogLaddy implements LoggerInterface
     public const LOG_LEVEL_SUCCESS = 'ok';
 
     private $hasHaltingMessages = false;
+
+    // public function __construct(StateAgentInterface $agent)
+    // {
+    //
+    // }
 
   /**
    * Everything went fine, which is always nice.
