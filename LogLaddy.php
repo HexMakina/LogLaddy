@@ -14,7 +14,7 @@ namespace HexMakina\LogLaddy;
 
 // Debugger
 use \HexMakina\Debugger\Debugger;
-use \HexMakina\StageAgent\StateAgentInterface;
+use \HexMakina\Interfaces\StateAgentInterface;
 
 class LogLaddy extends \Psr\Log\AbstractLogger
 {
@@ -24,6 +24,16 @@ class LogLaddy extends \Psr\Log\AbstractLogger
     public const LOG_LEVEL_SUCCESS = 'ok';
 
     private $hasHaltingMessages = false;
+
+    private $state_agent = null;
+    private $debugger = null;
+
+    public function __construct(StateAgentInterface $agent, Debugger $debug)
+    {
+      $this->state_agent = $agent;
+      $this->debugger = $debug;
+      $this->setHandlers();
+    }
 
     public function setHandlers()
     {
@@ -103,7 +113,7 @@ class LogLaddy extends \Psr\Log\AbstractLogger
             $display_error .= PHP_EOL . Debugger::tracesToString($context['trace'], true);
             self::HTTP500($display_error);
         } else {// --- Handles user messages, through SESSION storage
-            $this->reportToUser($level, $message, $context);
+            $this->state_agent->addMessage($level, $message, $context);
         }
     }
 
@@ -112,40 +122,16 @@ class LogLaddy extends \Psr\Log\AbstractLogger
         Debugger::displayErrors($display_error);
         http_response_code(500);
     }
+
   // -- Allows to know if script must be halted after fatal error
   // TODO NEH.. not good
+
     public function hasHaltingMessages()
     {
-        return $this->hasHaltingMessages === true;
+
+        ddt('DEPRECATED CALL halting messages should halt the system, not be detected', __FUNCTION__);
     }
 
-  // -- User messages
-
-  // -- User messages:add one
-    public function reportToUser($level, $message, $context = [])
-    {
-        if (!isset($_SESSION[self::REPORTING_USER])) {
-            $_SESSION[self::REPORTING_USER] = [];
-        }
-
-        if (!isset($_SESSION[self::REPORTING_USER][$level])) {
-            $_SESSION[self::REPORTING_USER][$level] = [];
-        }
-
-        $_SESSION[self::REPORTING_USER][$level][] = [$message, $context];
-    }
-
-  // -- User messages:get all
-    public function getUserReport()
-    {
-        return $_SESSION[self::REPORTING_USER] ?? [];
-    }
-
-  // -- User messages:reset all
-    public function cleanUserReport()
-    {
-        unset($_SESSION[self::REPORTING_USER]);
-    }
 
   // -- Error level mapping from \Psr\Log\LogLevel.php & http://php.net/manual/en/errorfunc.constants.php
   /** Error level meaning , from \Psr\Log\LogLevel.php
