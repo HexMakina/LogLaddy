@@ -16,36 +16,14 @@ namespace HexMakina\LogLaddy;
 use \HexMakina\Debugger\Debugger;
 use \HexMakina\StageAgent\StateAgentInterface;
 
-class LogLaddy implements LoggerInterface
+class LogLaddy extends \Psr\Log\AbstractLogger
 {
-    use \Psr\Log\LoggerTrait;           // PSR implementation
-
-
     public const REPORTING_USER = 'user_messages';
     public const INTERNAL_ERROR = 'error';
     public const USER_EXCEPTION = 'exception';
     public const LOG_LEVEL_SUCCESS = 'ok';
 
     private $hasHaltingMessages = false;
-
-    // public function __construct(StateAgentInterface $agent)
-    // {
-    //
-    // }
-
-  /**
-   * Everything went fine, which is always nice.
-   * LogLaddy is a bit more optimistic than PSRLog
-   * @param string $message
-   * @param array  $context
-   *
-   * @return void
-   */
-    public function nice($message, array $context = array())
-    {
-        $this->log(LogLevel::NICE, $message, $context);
-    }
-
 
     public function setHandlers()
     {
@@ -78,7 +56,7 @@ class LogLaddy implements LoggerInterface
         if ($throwable instanceof \Exception) {
             $this->alert(self::USER_EXCEPTION, [$throwable]);
         } elseif ($throwable instanceof \Error) {
-            $this->notice(self::INTERNAL_ERROR, [$throwable]);
+            $this->error(self::INTERNAL_ERROR, [$throwable]);
         } else {
             $this->critical('Caught an unknown Throwable. This breaks everything.', [$throwable]);
         }
