@@ -13,8 +13,8 @@
 namespace HexMakina\LogLaddy;
 
 // Debugger
-use \HexMakina\Debugger\Debugger;
-use \HexMakina\Interfaces\StateAgentInterface;
+use HexMakina\Debugger\Debugger;
+use HexMakina\Interfaces\StateAgentInterface;
 
 class LogLaddy extends \Psr\Log\AbstractLogger
 {
@@ -30,9 +30,9 @@ class LogLaddy extends \Psr\Log\AbstractLogger
 
     public function __construct(StateAgentInterface $agent, Debugger $debug)
     {
-      $this->state_agent = $agent;
-      $this->debugger = $debug;
-      $this->setHandlers();
+        $this->state_agent = $agent;
+        $this->debugger = $debug;
+        $this->setHandlers();
     }
 
     public function setHandlers()
