@@ -13,25 +13,25 @@
 namespace HexMakina\LogLaddy;
 
 // Debugger
+use \Psr\Log\LogLevel;
 use HexMakina\Debugger\Debugger;
 use HexMakina\Interfaces\StateAgentInterface;
 
 class LogLaddy extends \Psr\Log\AbstractLogger
 {
-    public const REPORTING_USER = 'user_messages';
+    // public const REPORTING_USER = 'user_messages';
     public const INTERNAL_ERROR = 'error';
     public const USER_EXCEPTION = 'exception';
-    public const LOG_LEVEL_SUCCESS = 'ok';
+    // public const LOG_LEVEL_SUCCESS = 'ok';
 
     private $hasHaltingMessages = false;
 
     private $state_agent = null;
-    private $debugger = null;
 
-    public function __construct(StateAgentInterface $agent, Debugger $debug)
+
+    public function __construct(StateAgentInterface $agent)
     {
         $this->state_agent = $agent;
-        $this->debugger = $debug;
         $this->setHandlers();
     }
 
@@ -128,8 +128,7 @@ class LogLaddy extends \Psr\Log\AbstractLogger
 
     public function hasHaltingMessages()
     {
-
-        ddt('DEPRECATED CALL halting messages should halt the system, not be detected', __FUNCTION__);
+        return $this->hasHaltingMessages;
     }
 
 
