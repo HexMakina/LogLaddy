@@ -12,48 +12,23 @@ It relies on \Psr\Log\LoggerTrait and \HexMakina\Debugger\Debugger
 
 # Usage
 
-To catch errors and exceptions:
+
+To create messages outside of errors and exceptions, first initialise the LogLaddy, with a compatible state agent (for storing user messages)
 
 ```
-error_reporting(E_ALL);
-
-set_error_handler('\HexMakina\Logger\LogLaddy::error_handler');
-set_exception_handler('\HexMakina\Logger\LogLaddy::exception_handler');
-```
-
-then, to get user messages for i18n and further display:
-
-```
-$l = new LogLaddy();
-$l->get_user_report();
-```
-To reset user messages:
-
-```
-$l = new LogLaddy();
-$l->clean_user_report();
-```
-
-
-
-To create messages outside of errors and exceptions, first initialise the LogLaddy:
-```
-$l = new LogLaddy();
+$l = new LogLaddy(StateAgentInterface $agent);
 ```
 
 Then call one of the messaging method:
 
 ```
-// for success messages
-$l->nice(string $message, array $context = array());
-
 // for detailed debug information
 $l->debug($message, array $context = array())
 
-// for interesting events
+// for interesting events 
 $l->info($message, array $context = array())
 
-// for normal but significant events
+// for normal but significant events (and success messages)
 $l->notice($message, array $context = array())
 
 // for exceptional occurrences that are not errors
