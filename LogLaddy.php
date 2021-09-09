@@ -15,7 +15,7 @@ namespace HexMakina\LogLaddy;
 // Debugger
 use \Psr\Log\LogLevel;
 use HexMakina\Debugger\Debugger;
-use HexMakina\Interfaces\StateAgentInterface;
+use HexMakina\BlackBox\StateAgentInterface;
 
 class LogLaddy extends \Psr\Log\AbstractLogger
 {
