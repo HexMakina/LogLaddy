@@ -13,7 +13,7 @@
 namespace HexMakina\LogLaddy;
 
 // Debugger
-use \Psr\Log\LogLevel;
+use Psr\Log\LogLevel;
 use HexMakina\Debugger\Debugger;
 use HexMakina\BlackBox\StateAgentInterface;
 
