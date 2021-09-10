@@ -19,15 +19,7 @@ use HexMakina\BlackBox\StateAgentInterface;
 
 class LogLaddy extends \Psr\Log\AbstractLogger
 {
-    // public const REPORTING_USER = 'user_messages';
-    public const INTERNAL_ERROR = 'error';
-    public const USER_EXCEPTION = 'exception';
-    // public const LOG_LEVEL_SUCCESS = 'ok';
-
-    private $hasHaltingMessages = false;
-
     private $state_agent = null;
-
 
     public function __construct(StateAgentInterface $agent)
     {
@@ -63,72 +55,31 @@ class LogLaddy extends \Psr\Log\AbstractLogger
     */
     public function exceptionHandler(\Throwable $throwable)
     {
-        if ($throwable instanceof \Exception) {
-            $this->alert(self::USER_EXCEPTION, [$throwable]);
-        } elseif ($throwable instanceof \Error) {
-            $this->error(self::INTERNAL_ERROR, [$throwable]);
-        } else {
-            $this->critical('Caught an unknown Throwable. This breaks everything.', [$throwable]);
-        }
+        $this->critical(Debugger::formatThrowable($throwable) , $throwable->getTrace());
     }
-
-    public function systemHalted($level)
-    {
-        switch ($level) {
-            case LogLevel::ERROR:
-            case LogLevel::CRITICAL:
-            case LogLevel::ALERT:
-            case LogLevel::EMERGENCY:
-                return true;
-        }
-        return false;
-    }
-
-  // -- Implementation of LoggerInterface::log(), all other methods are in LoggerTrait
 
     public function log($level, $message, array $context = [])
     {
-        $display_error = null;
+        switch ($level) {
+          case LogLevel::DEBUG:
+            Debugger::visualDump($context, $message, true);
+          break;
 
-      // --- Handles Throwables (exception_handler())
-        if ($message === self::INTERNAL_ERROR || $message === self::USER_EXCEPTION) {
-            $this->hasHaltingMessages = true;
-            if (($context = current($context)) !== false) {
-                $display_error = Debugger::formatThrowable($context);
-                $display_error .= PHP_EOL . Debugger::tracesToString($context->getTrace(), false);
-                error_log($display_error);
-                self::HTTP500($display_error);
-            }
-        } elseif ($this->systemHalted($level)) { // analyses error level
-            $display_error = sprintf(
-                PHP_EOL . '%s in file %s:%d' . PHP_EOL . '%s',
-                $level,
-                Debugger::formatFilename($context['file']),
-                $context['line'],
-                $message
-            );
-
-            error_log($display_error);
-
-            $display_error .= PHP_EOL . Debugger::tracesToString($context['trace'], true);
-            self::HTTP500($display_error);
-        } else {// --- Handles user messages, through SESSION storage
+          case LogLevel::INFO:
+          case LogLevel::NOTICE:
+          case LogLevel::WARNING:
             $this->state_agent->addMessage($level, $message, $context);
+          break;
+
+          case LogLevel::CRITICAL:
+          case LogLevel::ALERT:
+          case LogLevel::EMERGENCY:
+            // if dev, show, else logto file
+            echo Debugger::toHTML($message,$level,$context, true);
+            http_response_code(500);
+            die;
+          break;
         }
-    }
-
-    public static function HTTP500($display_error)
-    {
-        Debugger::displayErrors($display_error);
-        http_response_code(500);
-    }
-
-  // -- Allows to know if script must be halted after fatal error
-  // TODO NEH.. not good
-
-    public function hasHaltingMessages()
-    {
-        return $this->hasHaltingMessages;
     }
 
 
