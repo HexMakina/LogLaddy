@@ -20,8 +20,10 @@ use HexMakina\BlackBox\StateAgentInterface;
 class LogLaddy extends \Psr\Log\AbstractLogger
 {
     private $state_agent = null;
+    private static $level_mapping = null;
 
-    public function __construct(StateAgentInterface $agent)
+
+    public function __construct(StateAgentInterface $agent = null)
     {
         $this->state_agent = $agent;
         $this->setHandlers();
@@ -68,7 +70,11 @@ class LogLaddy extends \Psr\Log\AbstractLogger
             case LogLevel::INFO:
             case LogLevel::NOTICE:
             case LogLevel::WARNING:
-                $this->state_agent->addMessage($level, $message, $context);
+                if (is_null($this->state_agent)) {
+                    Debugger::visualDump($context, $message, true);
+                } else {
+                    $this->state_agent->addMessage($level, $message, $context);
+                }
                 break;
 
             case LogLevel::CRITICAL:
@@ -83,38 +89,71 @@ class LogLaddy extends \Psr\Log\AbstractLogger
     }
 
 
-  // -- Error level mapping from \Psr\Log\LogLevel.php & http://php.net/manual/en/errorfunc.constants.php
-  /** Error level meaning , from \Psr\Log\LogLevel.php
-   * const EMERGENCY = 'emergency'; // System is unusable.
-   * const ALERT     = 'alert'; // Action must be taken immediately, Example: Entire website down, database unavailable, etc.
-   * const CRITICAL  = 'critical';  // Application component unavailable, unexpected exception.
-   * const ERROR     = 'error'; // Run time errors that do not require immediate action
-   * const WARNING   = 'warning'; // Exceptional occurrences that are not errors, undesirable things that are not necessarily wrong
-   * const NOTICE    = 'notice'; // Normal but significant events.
-   * const INFO      = 'info'; // Interesting events. User logs in, SQL logs.
-   * const DEBUG     = 'debug'; // Detailed debug information.
-  */
+    // -- Error level mapping from \Psr\Log\LogLevel.php & http://php.net/manual/en/errorfunc.constants.php
+    /** Error level meaning , from \Psr\Log\LogLevel.php
+     * const EMERGENCY = 'emergency';
+     *                 // System is unusable.
+     * const ALERT     = 'alert';
+     *                 // Action must be taken immediately, Example: Entire website down, database unavailable, etc.
+     * const CRITICAL  = 'critical';
+     *                 // Application component unavailable, unexpected exception.
+     * const ERROR     = 'error';
+     *                 // Run time errors that do not require immediate action
+     * const WARNING   = 'warning';
+     *                 // Exceptional occurrences that are not errors, undesirable things that are not necessarily wrong
+     * const NOTICE    = 'notice';
+     *                 // Normal but significant events.
+     * const INFO      = 'info';
+     *                 // Interesting events. User logs in, SQL logs.
+     * const DEBUG     = 'debug';
+     *                 // Detailed debug information.
+     */
     private static function mapErrorLevelToLogLevel($level): string
     {
       // http://php.net/manual/en/errorfunc.constants.php
-        $m = [];
+        if (is_null(self::$level_mapping)) {
+            self::$level_mapping = [
+            E_ERROR => LogLevel::ALERT,
+            E_PARSE => LogLevel::ALERT,
+            E_CORE_ERROR => LogLevel::ALERT,
+            E_COMPILE_ERROR => LogLevel::ALERT,
+            E_USER_ERROR => LogLevel::ALERT,
+            E_RECOVERABLE_ERROR => LogLevel::ALERT,
+            1 => LogLevel::ALERT,
+            4 => LogLevel::ALERT,
+            16 => LogLevel::ALERT,
+            64 => LogLevel::ALERT,
+            256 => LogLevel::ALERT,
+            4096 => LogLevel::ALERT,
 
-        $m[E_ERROR] = $m[E_PARSE] = $m[E_CORE_ERROR] = $m[E_COMPILE_ERROR] = $m[E_USER_ERROR] = $m[E_RECOVERABLE_ERROR] = LogLevel::ALERT;
-        $m[1] = $m[4] = $m[16] = $m[64] = $m[256] = $m[4096] = LogLevel::ALERT;
+            E_WARNING => LogLevel::CRITICAL,
+            E_CORE_WARNING => LogLevel::CRITICAL,
+            E_COMPILE_WARNING => LogLevel::CRITICAL,
+            E_USER_WARNING => LogLevel::CRITICAL,
+            2 => LogLevel::CRITICAL,
+            32 => LogLevel::CRITICAL,
+            128 => LogLevel::CRITICAL,
+            512 => LogLevel::CRITICAL,
 
-        $m[E_WARNING] = $m[E_CORE_WARNING] = $m[E_COMPILE_WARNING] = $m[E_USER_WARNING] = LogLevel::CRITICAL;
-        $m[2] = $m[32] = $m[128] = $m[512] = LogLevel::CRITICAL;
+            E_NOTICE => LogLevel::ERROR,
+            E_USER_NOTICE => LogLevel::ERROR,
+            8 => LogLevel::ERROR,
+            1024 => LogLevel::ERROR,
 
-        $m[E_NOTICE] = $m[E_USER_NOTICE] = LogLevel::ERROR;
-        $m[8] = $m[1024] = LogLevel::ERROR;
-
-        $m[E_STRICT] = $m[E_DEPRECATED] = $m[E_USER_DEPRECATED] = $m[E_ALL] = LogLevel::DEBUG;
-        $m[2048] = $m[8192] = $m[16384] = $m[32767] = LogLevel::DEBUG;
-
-        if (isset($m[$level])) {
-            return $m[$level];
+            E_STRICT => LogLevel::DEBUG,
+            E_DEPRECATED => LogLevel::DEBUG,
+            E_USER_DEPRECATED => LogLevel::DEBUG,
+            E_ALL => LogLevel::DEBUG,
+            2048 => LogLevel::DEBUG,
+            8192 => LogLevel::DEBUG,
+            16384 => LogLevel::DEBUG,
+            32767 => LogLevel::DEBUG,
+            ];
+        }
+        if (!isset(self::$level_mapping[$level])) {
+            throw new \Exception(__FUNCTION__ . "($level): $level is unknown");
         }
 
-        throw new \Exception(__FUNCTION__ . "($level): $level is unknown");
+        return self::$level_mapping[$level];
     }
 }
