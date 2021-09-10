@@ -55,30 +55,30 @@ class LogLaddy extends \Psr\Log\AbstractLogger
     */
     public function exceptionHandler(\Throwable $throwable)
     {
-        $this->critical(Debugger::formatThrowable($throwable) , $throwable->getTrace());
+        $this->critical(Debugger::formatThrowable($throwable), $throwable->getTrace());
     }
 
     public function log($level, $message, array $context = [])
     {
         switch ($level) {
-          case LogLevel::DEBUG:
-            Debugger::visualDump($context, $message, true);
-          break;
+            case LogLevel::DEBUG:
+                Debugger::visualDump($context, $message, true);
+                break;
 
-          case LogLevel::INFO:
-          case LogLevel::NOTICE:
-          case LogLevel::WARNING:
-            $this->state_agent->addMessage($level, $message, $context);
-          break;
+            case LogLevel::INFO:
+            case LogLevel::NOTICE:
+            case LogLevel::WARNING:
+                $this->state_agent->addMessage($level, $message, $context);
+                break;
 
-          case LogLevel::CRITICAL:
-          case LogLevel::ALERT:
-          case LogLevel::EMERGENCY:
-            // if dev, show, else logto file
-            echo Debugger::toHTML($message,$level,$context, true);
-            http_response_code(500);
-            die;
-          break;
+            case LogLevel::CRITICAL:
+            case LogLevel::ALERT:
+            case LogLevel::EMERGENCY:
+              // if dev, show, else logto file
+                echo Debugger::toHTML($message, $level, $context, true);
+                http_response_code(500);
+                die;
+            break;
         }
     }
 
