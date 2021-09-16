@@ -112,44 +112,14 @@ class LogLaddy extends \Psr\Log\AbstractLogger
     {
       // http://php.net/manual/en/errorfunc.constants.php
         if (is_null(self::$level_mapping)) {
-            self::$level_mapping = [
-            E_ERROR => LogLevel::ALERT,
-            E_PARSE => LogLevel::ALERT,
-            E_CORE_ERROR => LogLevel::ALERT,
-            E_COMPILE_ERROR => LogLevel::ALERT,
-            E_USER_ERROR => LogLevel::ALERT,
-            E_RECOVERABLE_ERROR => LogLevel::ALERT,
-            1 => LogLevel::ALERT,
-            4 => LogLevel::ALERT,
-            16 => LogLevel::ALERT,
-            64 => LogLevel::ALERT,
-            256 => LogLevel::ALERT,
-            4096 => LogLevel::ALERT,
+            self::$level_mapping =
+              array_fill_keys([E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR, E_USER_ERROR, E_RECOVERABLE_ERROR], LogLevel::ALERT)
+              + array_fill_keys([E_WARNING, E_CORE_WARNING, E_COMPILE_WARNING, E_USER_WARNING], LogLevel::CRITICAL)
+              + array_fill_keys([E_NOTICE, E_USER_NOTICE], LogLevel::ERROR)
+              + array_fill_keys([E_STRICT,E_DEPRECATED,E_USER_DEPRECATED,E_ALL], LogLevel::DEBUG);
 
-            E_WARNING => LogLevel::CRITICAL,
-            E_CORE_WARNING => LogLevel::CRITICAL,
-            E_COMPILE_WARNING => LogLevel::CRITICAL,
-            E_USER_WARNING => LogLevel::CRITICAL,
-            2 => LogLevel::CRITICAL,
-            32 => LogLevel::CRITICAL,
-            128 => LogLevel::CRITICAL,
-            512 => LogLevel::CRITICAL,
-
-            E_NOTICE => LogLevel::ERROR,
-            E_USER_NOTICE => LogLevel::ERROR,
-            8 => LogLevel::ERROR,
-            1024 => LogLevel::ERROR,
-
-            E_STRICT => LogLevel::DEBUG,
-            E_DEPRECATED => LogLevel::DEBUG,
-            E_USER_DEPRECATED => LogLevel::DEBUG,
-            E_ALL => LogLevel::DEBUG,
-            2048 => LogLevel::DEBUG,
-            8192 => LogLevel::DEBUG,
-            16384 => LogLevel::DEBUG,
-            32767 => LogLevel::DEBUG,
-            ];
         }
+
         if (!isset(self::$level_mapping[$level])) {
             throw new \Exception(__FUNCTION__ . "($level): $level is unknown");
         }
