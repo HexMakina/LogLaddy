@@ -80,7 +80,7 @@ class LogLaddy extends \Psr\Log\AbstractLogger
             default:
                 echo Debugger::toHTML($message, $level, $context, true);
                 http_response_code(500);
-            break;
+                break;
         }
     }
 
@@ -113,7 +113,6 @@ class LogLaddy extends \Psr\Log\AbstractLogger
               + array_fill_keys([E_WARNING, E_CORE_WARNING, E_COMPILE_WARNING, E_USER_WARNING], LogLevel::CRITICAL)
               + array_fill_keys([E_NOTICE, E_USER_NOTICE], LogLevel::ERROR)
               + array_fill_keys([E_STRICT,E_DEPRECATED,E_USER_DEPRECATED,E_ALL], LogLevel::DEBUG);
-
         }
 
         if (!isset(self::$level_mapping[$level])) {
