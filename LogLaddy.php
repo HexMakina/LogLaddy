@@ -77,13 +77,9 @@ class LogLaddy extends \Psr\Log\AbstractLogger
                 }
                 break;
 
-            case LogLevel::CRITICAL:
-            case LogLevel::ALERT:
-            case LogLevel::EMERGENCY:
-              // if dev, show, else logto file
+            default:
                 echo Debugger::toHTML($message, $level, $context, true);
                 http_response_code(500);
-                die;
             break;
         }
     }
