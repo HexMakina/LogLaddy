@@ -47,8 +47,10 @@ class LogLaddy extends \Psr\Log\AbstractLogger
     */
     public function errorHandler($level, $message, $file = '', $line = 0)
     {
+
         $loglevel = self::mapErrorLevelToLogLevel($level);
-        $this->$loglevel($message, ['file' => $file, 'line' => $line, 'trace' => debug_backtrace()]);
+        $this->{$loglevel}($message, debug_backtrace());
+        // $this->{$loglevel}($message, ['file' => $file, 'line' => $line, 'trace' => debug_backtrace()]);
     }
 
     /*
@@ -78,6 +80,7 @@ class LogLaddy extends \Psr\Log\AbstractLogger
                 break;
 
             default:
+
                 echo Debugger::toHTML($message, $level, $context, true);
                 http_response_code(500);
                 break;
