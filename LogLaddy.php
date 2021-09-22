@@ -43,30 +43,28 @@ class LogLaddy extends \Psr\Log\AbstractLogger
 
     /*
     * handler for errors
-    * use set_error_handler('\HexMakina\kadro\Logger\LogLaddy::error_handler')
+    * use set_error_handler([$instance, 'errorHandler']);
     */
     public function errorHandler($level, $message, $file = '', $line = 0)
     {
-
         $loglevel = self::mapErrorLevelToLogLevel($level);
-        $this->{$loglevel}($message, debug_backtrace());
-        // $this->{$loglevel}($message, ['file' => $file, 'line' => $line, 'trace' => debug_backtrace()]);
+        $this->{$loglevel}($message);
     }
 
     /*
     * static handlers for throwables,
-    * use set_exception_handler('\HexMakina\kadro\Logger\LogLaddy::exception_handler');
+    * use set_exception_handler([$instance, 'exceptionHandler']);
     */
     public function exceptionHandler(\Throwable $throwable)
     {
-        $this->critical(Debugger::formatThrowable($throwable), $throwable->getTrace());
+        $this->critical($throwable->getMessage(), ['exception' => $throwable]);
     }
 
     public function log($level, $message, array $context = [])
     {
         switch ($level) {
             case LogLevel::DEBUG:
-                Debugger::visualDump($context, $message, true);
+                Debugger::visualDump($message, $level, true);
                 break;
 
             case LogLevel::INFO:
@@ -80,8 +78,11 @@ class LogLaddy extends \Psr\Log\AbstractLogger
                 break;
 
             default:
-
-                echo Debugger::toHTML($message, $level, $context, true);
+                if(isset($context['exception']) && $context['exception'] instanceof \Throwable){
+                  Debugger::visualDump($context['exception'], 'Uncaught '.get_class($context['exception']), true);
+                }
+                else
+                  Debugger::visualDump($message, $level, true);
                 http_response_code(500);
                 break;
         }
