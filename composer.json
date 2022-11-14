@@ -4,7 +4,7 @@
     "type": "package",
     "require": {
         "php": ">=7.0",
-        "psr/log": "1.1.2",
+        "psr/log": "1.1.4",
         "hexmakina/black-box": "0.0.*",
         "hexmakina/debugger": "0.1.*"
     },
@@ -19,7 +19,7 @@
     "minimum-stability": "dev",
     "autoload": {
         "psr-4": {
-            "HexMakina\\LogLaddy\\": "/"
+            "HexMakina\\LogLaddy\\": "/src"
         }
     }
 }
