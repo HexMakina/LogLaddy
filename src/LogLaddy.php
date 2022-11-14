@@ -72,25 +72,37 @@ class LogLaddy extends \Psr\Log\AbstractLogger
 
     public function log($level, $message, array $context = []): void
     {
-        if ($level === LogLevel::DEBUG) {
-            Debugger::visualDump($message, $level, true);
-        } elseif (in_array($level, [LogLevel::INFO, LogLevel::NOTICE, LogLevel::WARNING])) {
-            if (is_null($this->state_agent)) {
+        switch ($level) {
+            case LogLevel::DEBUG:
                 Debugger::visualDump($message, $level, true);
-            } else {
-                $this->state_agent->addMessage($level, $message, $context);
-            }
-        } elseif (in_array($level, [LogLevel::ERROR, LogLevel::CRITICAL, LogLevel::ALERT, LogLevel::EMERGENCY])) {
-            if (isset($context['exception']) && $context['exception'] instanceof \Throwable) {
-                Debugger::visualDump($context['exception'], 'Uncaught ' . get_class($context['exception']), true);
-            } else {
-                Debugger::visualDump($message, $level, true);
-            }
+                break;
 
-            http_response_code(500);
-            die;
-        } else {
-            throw new \Psr\Log\InvalidArgumentException('UNDEFINED_LOGLEVEL_' . $level);
+            case LogLevel::INFO:
+            case LogLevel::NOTICE:
+            case LogLevel::WARNING:
+                if (is_null($this->state_agent)) {
+                    Debugger::visualDump($message, $level, true);
+                } else {
+                    $this->state_agent->addMessage($level, $message, $context);
+                }
+                break;
+
+            case LogLevel::ERROR:
+            case LogLevel::CRITICAL:
+            case LogLevel::ALERT:
+            case LogLevel::EMERGENCY:
+                if (isset($context['exception']) && $context['exception'] instanceof \Throwable) {
+                    $message = $context['exception'];
+                    $level = 'Uncaught ' . get_class($context['exception'];
+                }
+
+                Debugger::visualDump($message, $level, true);
+                http_response_code(500);
+                die;
+            break;
+
+            default:
+                throw new \Psr\Log\InvalidArgumentException('UNDEFINED_LOGLEVEL_' . $level);
         }
     }
 
@@ -109,8 +121,7 @@ class LogLaddy extends \Psr\Log\AbstractLogger
         return self::$level_mapping[$level];
     }
 
-   /**  Error level meaning , from \Psr\Log\LogLevel.php
-     *  Error level mapping from \Psr\Log\LogLevel.php & http://php.net/manual/en/errorfunc.constants.php
+   /**  Error level meaning, from \Psr\Log\LogLevel.php
      *
      * const EMERGENCY = 'emergency';
      *                 // System is unusable.
@@ -128,6 +139,9 @@ class LogLaddy extends \Psr\Log\AbstractLogger
      *                 // Interesting events. User logs in, SQL logs.
      * const DEBUG     = 'debug';
      *                 // Detailed debug information.
+     *
+     *
+     *  Error level mapping from \Psr\Log\LogLevel.php & http://php.net/manual/en/errorfunc.constants.php
      */
     private static function createErrorLevelMap(): void
     {
