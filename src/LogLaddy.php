@@ -20,8 +20,8 @@ use HexMakina\BlackBox\StateAgentInterface;
 
 class LogLaddy extends \Psr\Log\AbstractLogger
 {
-    private $state_agent = null;
     private static $level_mapping = null;
+    private StateAgentInterface $state_agent = null;
 
 
     public function __construct(StateAgentInterface $agent = null)
@@ -46,7 +46,7 @@ class LogLaddy extends \Psr\Log\AbstractLogger
     * handler for errors
     * use set_error_handler([$instance, 'errorHandler']);
     */
-    public function errorHandler($level, $message, $file = '', $line = 0)
+    public function errorHandler(int $level, string $message, string $file = '', int $line = 0)
     {
         $loglevel = self::mapErrorLevelToLogLevel($level);
         $this->{$loglevel}($message);
@@ -83,36 +83,27 @@ class LogLaddy extends \Psr\Log\AbstractLogger
         } else {
             throw new \Psr\Log\InvalidArgumentException('UNDEFINED_LOGLEVEL_' . $level);
         }
-
-        // switch ($level) {
-        //     case LogLevel::DEBUG:
-        //         Debugger::visualDump($message, $level, true);
-        //     break;
-        //
-        //     case LogLevel::INFO:
-        //     case LogLevel::NOTICE:
-        //     case LogLevel::WARNING:
-        //         if (is_null($this->state_agent)) {
-        //             Debugger::visualDump($message, $level, true);
-        //         } else {
-        //             $this->state_agent->addMessage($level, $message, $context);
-        //         }
-        //     break;
-        //
-        //     default:
-        //         if(isset($context['exception']) && $context['exception'] instanceof \Throwable)
-        //           Debugger::visualDump($context['exception'], 'Uncaught '.get_class($context['exception']), true);
-        //         else
-        //           Debugger::visualDump($message, $level, true);
-        //
-        //         http_response_code(500);
-        //     break;
-        // }
     }
 
+    private static function mapErrorLevelToLogLevel(int $level): string
+    {
 
-    // -- Error level mapping from \Psr\Log\LogLevel.php & http://php.net/manual/en/errorfunc.constants.php
-    /** Error level meaning , from \Psr\Log\LogLevel.php
+      // http://php.net/manual/en/errorfunc.constants.php
+        if (is_null(self::$level_mapping)) {
+            self::createErrorLevelMap();
+        }
+
+        if (!isset(self::$level_mapping[$level])) {
+            throw new \Exception(__FUNCTION__ . "($level): $level is unknown");
+        }
+
+        return self::$level_mapping[$level];
+    }
+
+   /** Error level meaning , from \Psr\Log\LogLevel.php
+     *  Error level mapping from \Psr\Log\LogLevel.php & http://php.net/manual/en/errorfunc.constants.php
+     *
+     *
      * const EMERGENCY = 'emergency';
      *                 // System is unusable.
      * const ALERT     = 'alert';
@@ -129,22 +120,15 @@ class LogLaddy extends \Psr\Log\AbstractLogger
      *                 // Interesting events. User logs in, SQL logs.
      * const DEBUG     = 'debug';
      *                 // Detailed debug information.
+     *
+     * @return array<int,string>
+     *
      */
-    private static function mapErrorLevelToLogLevel($level): string
+    private static function createErrorLevelMap() : array
     {
-
-      // http://php.net/manual/en/errorfunc.constants.php
-        if (is_null(self::$level_mapping)) {
-            self::$level_mapping =
-              array_fill_keys([E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR, E_USER_ERROR, E_RECOVERABLE_ERROR], LogLevel::CRITICAL)
-              + array_fill_keys([E_WARNING, E_CORE_WARNING, E_COMPILE_WARNING, E_USER_WARNING], LogLevel::ERROR)
-              + array_fill_keys([E_NOTICE, E_USER_NOTICE, E_STRICT,E_DEPRECATED,E_USER_DEPRECATED,E_ALL], LogLevel::DEBUG);
-        }
-
-        if (!isset(self::$level_mapping[$level])) {
-            throw new \Exception(__FUNCTION__ . "($level): $level is unknown");
-        }
-
-        return self::$level_mapping[$level];
+        self::$level_mapping =
+          array_fill_keys([E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR, E_USER_ERROR, E_RECOVERABLE_ERROR], LogLevel::CRITICAL)
+          + array_fill_keys([E_WARNING, E_CORE_WARNING, E_COMPILE_WARNING, E_USER_WARNING], LogLevel::ERROR)
+          + array_fill_keys([E_NOTICE, E_USER_NOTICE, E_STRICT,E_DEPRECATED,E_USER_DEPRECATED,E_ALL], LogLevel::DEBUG);
     }
 }
