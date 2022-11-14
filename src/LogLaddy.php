@@ -34,13 +34,13 @@ class LogLaddy extends \Psr\Log\AbstractLogger
         $this->setHandlers();
     }
 
-    public function setHandlers() : void
+    public function setHandlers(): void
     {
         set_error_handler([$this, 'errorHandler']);
         set_exception_handler([$this, 'exceptionHandler']);
     }
 
-    public function restoreHandlers() : void
+    public function restoreHandlers(): void
     {
         restore_error_handler();
         restore_exception_handler();
@@ -53,7 +53,7 @@ class LogLaddy extends \Psr\Log\AbstractLogger
       * https://www.php.net/manual/en/function.set-error-handler
       *
       */
-    public function errorHandler(int $level, string $message, string $file = '', int $line = 0) : bool
+    public function errorHandler(int $level, string $message, string $file = '', int $line = 0): bool
     {
         $loglevel = self::mapErrorLevelToLogLevel($level);
         $this->{$loglevel}($message);
@@ -65,12 +65,12 @@ class LogLaddy extends \Psr\Log\AbstractLogger
     * handler for throwables,
     * use set_exception_handler([$instance, 'exceptionHandler']);
     */
-    public function exceptionHandler(\Throwable $throwable) : void
+    public function exceptionHandler(\Throwable $throwable): void
     {
         $this->critical($throwable->getMessage(), ['exception' => $throwable]);
     }
 
-    public function log($level, $message, array $context = []) : void
+    public function log($level, $message, array $context = []): void
     {
         if ($level === LogLevel::DEBUG) {
             Debugger::visualDump($message, $level, true);
@@ -129,11 +129,23 @@ class LogLaddy extends \Psr\Log\AbstractLogger
      * const DEBUG     = 'debug';
      *                 // Detailed debug information.
      */
-    private static function createErrorLevelMap() : void
+    private static function createErrorLevelMap(): void
     {
-        self::$level_mapping =
-          array_fill_keys([E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR, E_USER_ERROR, E_RECOVERABLE_ERROR], LogLevel::CRITICAL)
-          + array_fill_keys([E_WARNING, E_CORE_WARNING, E_COMPILE_WARNING, E_USER_WARNING], LogLevel::ERROR)
-          + array_fill_keys([E_NOTICE, E_USER_NOTICE, E_STRICT,E_DEPRECATED,E_USER_DEPRECATED,E_ALL], LogLevel::DEBUG);
+        $critical = array_fill_keys(
+            [E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR, E_USER_ERROR, E_RECOVERABLE_ERROR],
+            LogLevel::CRITICAL
+        );
+
+        $error = array_fill_keys(
+            [E_WARNING, E_CORE_WARNING, E_COMPILE_WARNING, E_USER_WARNING],
+            LogLevel::ERROR
+        );
+
+        $debug = array_fill_keys(
+            [E_NOTICE, E_USER_NOTICE, E_STRICT,E_DEPRECATED,E_USER_DEPRECATED,E_ALL],
+            LogLevel::DEBUG
+        );
+
+        self::$level_mapping = $critical + $error + $debug;
     }
 }
