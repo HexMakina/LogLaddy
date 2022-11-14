@@ -20,8 +20,12 @@ use HexMakina\BlackBox\StateAgentInterface;
 
 class LogLaddy extends \Psr\Log\AbstractLogger
 {
-    private static $level_mapping = null;
-    private StateAgentInterface $state_agent = null;
+
+  /**
+   * @var array<int,string> $level_mapping
+   */
+    private static array $level_mapping;
+    private ?StateAgentInterface $state_agent;
 
 
     public function __construct(StateAgentInterface $agent = null)
@@ -30,38 +34,43 @@ class LogLaddy extends \Psr\Log\AbstractLogger
         $this->setHandlers();
     }
 
-    public function setHandlers()
+    public function setHandlers() : void
     {
         set_error_handler([$this, 'errorHandler']);
         set_exception_handler([$this, 'exceptionHandler']);
     }
 
-    public function restoreHandlers()
+    public function restoreHandlers() : void
     {
         restore_error_handler();
         restore_exception_handler();
     }
 
-    /*
-    * handler for errors
-    * use set_error_handler([$instance, 'errorHandler']);
-    */
-    public function errorHandler(int $level, string $message, string $file = '', int $line = 0)
+    /**
+      * handler for errors
+      * use set_error_handler([$instance, 'errorHandler']);
+      *
+      * https://www.php.net/manual/en/function.set-error-handler
+      *
+      */
+    public function errorHandler(int $level, string $message, string $file = '', int $line = 0) : bool
     {
         $loglevel = self::mapErrorLevelToLogLevel($level);
         $this->{$loglevel}($message);
+
+        return true;
     }
 
     /*
     * handler for throwables,
     * use set_exception_handler([$instance, 'exceptionHandler']);
     */
-    public function exceptionHandler(\Throwable $throwable)
+    public function exceptionHandler(\Throwable $throwable) : void
     {
         $this->critical($throwable->getMessage(), ['exception' => $throwable]);
     }
 
-    public function log($level, $message, array $context = [])
+    public function log($level, $message, array $context = []) : void
     {
         if ($level === LogLevel::DEBUG) {
             Debugger::visualDump($message, $level, true);
@@ -89,7 +98,7 @@ class LogLaddy extends \Psr\Log\AbstractLogger
     {
 
       // http://php.net/manual/en/errorfunc.constants.php
-        if (is_null(self::$level_mapping)) {
+        if (empty(self::$level_mapping)) {
             self::createErrorLevelMap();
         }
 
@@ -100,9 +109,8 @@ class LogLaddy extends \Psr\Log\AbstractLogger
         return self::$level_mapping[$level];
     }
 
-   /** Error level meaning , from \Psr\Log\LogLevel.php
+   /**  Error level meaning , from \Psr\Log\LogLevel.php
      *  Error level mapping from \Psr\Log\LogLevel.php & http://php.net/manual/en/errorfunc.constants.php
-     *
      *
      * const EMERGENCY = 'emergency';
      *                 // System is unusable.
@@ -120,11 +128,8 @@ class LogLaddy extends \Psr\Log\AbstractLogger
      *                 // Interesting events. User logs in, SQL logs.
      * const DEBUG     = 'debug';
      *                 // Detailed debug information.
-     *
-     * @return array<int,string>
-     *
      */
-    private static function createErrorLevelMap() : array
+    private static function createErrorLevelMap() : void
     {
         self::$level_mapping =
           array_fill_keys([E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR, E_USER_ERROR, E_RECOVERABLE_ERROR], LogLevel::CRITICAL)
