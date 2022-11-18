@@ -24,20 +24,23 @@ class LogLaddy extends \Psr\Log\AbstractLogger
   /**
    * @var array<int,string> $level_mapping
    */
-    private static array $level_mapping;
+    private static array $level_mapping = [];
+
     private ?StateAgentInterface $state_agent;
 
 
-    public function __construct(StateAgentInterface $agent = null)
+    public function __construct(StateAgentInterface $stateAgent = null)
     {
-        $this->state_agent = $agent;
+        $this->state_agent = $stateAgent;
         $this->setHandlers();
     }
 
     public function setHandlers(): void
     {
-        set_error_handler([$this, 'errorHandler']);
-        set_exception_handler([$this, 'exceptionHandler']);
+        set_error_handler(fn(int $level, string $message, string $file = '', int $line = 0): bool => $this->errorHandler($level, $message, $file, $line));
+        set_exception_handler(function (\Throwable $throwable) : void {
+            $this->exceptionHandler($throwable);
+        });
     }
 
     public function restoreHandlers(): void
@@ -85,6 +88,7 @@ class LogLaddy extends \Psr\Log\AbstractLogger
                 } else {
                     $this->state_agent->addMessage($level, $message, $context);
                 }
+
                 break;
 
             case LogLevel::ERROR:
@@ -99,7 +103,6 @@ class LogLaddy extends \Psr\Log\AbstractLogger
                 Debugger::visualDump($message, $level, true);
                 http_response_code(500);
                 die;
-            break;
 
             default:
                 throw new \Psr\Log\InvalidArgumentException('UNDEFINED_LOGLEVEL_' . $level);
@@ -115,7 +118,7 @@ class LogLaddy extends \Psr\Log\AbstractLogger
         }
 
         if (!isset(self::$level_mapping[$level])) {
-            throw new \Exception(__FUNCTION__ . "($level): $level is unknown");
+            throw new \Exception(sprintf('%s(%d): %d is unknown', __FUNCTION__, $level, $level));
         }
 
         return self::$level_mapping[$level];
