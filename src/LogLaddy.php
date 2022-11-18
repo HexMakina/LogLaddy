@@ -93,7 +93,7 @@ class LogLaddy extends \Psr\Log\AbstractLogger
             case LogLevel::EMERGENCY:
                 if (isset($context['exception']) && $context['exception'] instanceof \Throwable) {
                     $message = $context['exception'];
-                    $level = 'Uncaught ' . get_class($context['exception'];
+                    $level = 'Uncaught ' . get_class($context['exception']);
                 }
 
                 Debugger::visualDump($message, $level, true);
