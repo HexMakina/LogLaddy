@@ -3,7 +3,7 @@
     "description": "LogLaddy is a PSR-3 Logger Interface implementation, but aimed at user interface messaging",
     "type": "package",
     "require": {
-        "php": ">=7.0",
+        "php": ">=7.4",
         "psr/log": "1.1.4",
         "hexmakina/black-box": "0.0.*",
         "hexmakina/debugger": "0.1.*"
