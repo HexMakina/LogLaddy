@@ -37,7 +37,12 @@ class LogLaddy extends \Psr\Log\AbstractLogger
 
     public function setHandlers(): void
     {
-        set_error_handler(fn(int $level, string $message, string $file = '', int $line = 0): bool => $this->errorHandler($level, $message, $file, $line));
+        set_error_handler(
+          function(int $level, string $message, string $file = '', int $line = 0): bool {
+            $this->errorHandler($level, $message, $file, $line);
+          }
+        );
+
         set_exception_handler(function (\Throwable $throwable) : void {
             $this->exceptionHandler($throwable);
         });
