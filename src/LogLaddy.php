@@ -39,12 +39,12 @@ class LogLaddy extends \Psr\Log\AbstractLogger
     {
         set_error_handler(
           function(int $level, string $message, string $file = '', int $line = 0): bool {
-            $this->errorHandler($level, $message, $file, $line);
+            return $this->errorHandler($level, $message, $file, $line);
           }
         );
 
-        set_exception_handler(function (\Throwable $throwable) : void {
-            $this->exceptionHandler($throwable);
+        set_exception_handler(function (\Throwable $throwable) : bool {
+            return $this->exceptionHandler($throwable);
         });
     }
 
@@ -73,9 +73,11 @@ class LogLaddy extends \Psr\Log\AbstractLogger
     * handler for throwables,
     * use set_exception_handler([$instance, 'exceptionHandler']);
     */
-    public function exceptionHandler(\Throwable $throwable): void
+    public function exceptionHandler(\Throwable $throwable): bool
     {
         $this->critical($throwable->getMessage(), ['exception' => $throwable]);
+
+        return true;
     }
 
     public function log($level, $message, array $context = []): void
