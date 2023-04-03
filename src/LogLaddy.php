@@ -21,9 +21,9 @@ use HexMakina\BlackBox\StateAgentInterface;
 class LogLaddy extends \Psr\Log\AbstractLogger
 {
 
-  /**
-   * @var array<int,string> $level_mapping
-   */
+    /**
+     * @var array<int,string> $level_mapping
+     */
     private static array $level_mapping = [];
 
     private ?StateAgentInterface $state_agent;
@@ -38,12 +38,12 @@ class LogLaddy extends \Psr\Log\AbstractLogger
     public function setHandlers(): void
     {
         set_error_handler(
-          function(int $level, string $message, string $file = '', int $line = 0): bool {
-            return $this->errorHandler($level, $message, $file, $line);
-          }
+            function (int $level, string $message, string $file = '', int $line = 0): bool {
+                return $this->errorHandler($level, $message, $file, $line);
+            }
         );
 
-        set_exception_handler(function (\Throwable $throwable) : bool {
+        set_exception_handler(function (\Throwable $throwable): bool {
             return $this->exceptionHandler($throwable);
         });
     }
@@ -55,12 +55,12 @@ class LogLaddy extends \Psr\Log\AbstractLogger
     }
 
     /**
-      * handler for errors
-      * use set_error_handler([$instance, 'errorHandler']);
-      *
-      * https://www.php.net/manual/en/function.set-error-handler
-      *
-      */
+     * handler for errors
+     * use set_error_handler([$instance, 'errorHandler']);
+     *
+     * https://www.php.net/manual/en/function.set-error-handler
+     *
+     */
     public function errorHandler(int $level, string $message, string $file = '', int $line = 0): bool
     {
         $loglevel = self::mapErrorLevelToLogLevel($level);
@@ -119,7 +119,7 @@ class LogLaddy extends \Psr\Log\AbstractLogger
     private static function mapErrorLevelToLogLevel(int $level): string
     {
 
-      // http://php.net/manual/en/errorfunc.constants.php
+        // http://php.net/manual/en/errorfunc.constants.php
         if (empty(self::$level_mapping)) {
             self::createErrorLevelMap();
         }
@@ -131,7 +131,7 @@ class LogLaddy extends \Psr\Log\AbstractLogger
         return self::$level_mapping[$level];
     }
 
-   /**  Error level meaning, from \Psr\Log\LogLevel.php
+    /**  Error level meaning, from \Psr\Log\LogLevel.php
      *
      * const EMERGENCY = 'emergency';
      *                 // System is unusable.
@@ -166,7 +166,7 @@ class LogLaddy extends \Psr\Log\AbstractLogger
         );
 
         $debug = array_fill_keys(
-            [E_NOTICE, E_USER_NOTICE, E_STRICT,E_DEPRECATED,E_USER_DEPRECATED,E_ALL],
+            [E_NOTICE, E_USER_NOTICE, E_STRICT, E_DEPRECATED, E_USER_DEPRECATED, E_ALL],
             LogLevel::DEBUG
         );
 
