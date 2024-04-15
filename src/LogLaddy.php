@@ -7,75 +7,80 @@
  * Behind all things are reasons. Reasons can even explain the absurd.
  *
  * LogLaddy manages error reporting
- * PSR-3 Compliant, with a NICE bonus
+ * PSR-3 Compliant
  */
 
 namespace HexMakina\LogLaddy;
 
 // Debugger
-use Psr\Log\LogLevel;
-use Psr\Log\InvalidArgumentException;
+use Psr\Log\{LogLevel, LoggerInterface};
 use HexMakina\Debugger\Debugger;
-use HexMakina\BlackBox\StateAgentInterface;
 
-class LogLaddy extends \Psr\Log\AbstractLogger
+class LogLaddy implements LoggerInterface
 {
+    public const OSD_SESSION_KEY = 'HexMakina:LogLaddy:OSD';
+    private PHPErrorToPSRLevel $errorMappper;
+    private array $messages;
 
-  /**
-   * @var array<int,string> $level_mapping
-   */
-    private static array $level_mapping = [];
-
-    private ?StateAgentInterface $state_agent;
-
-
-    public function __construct(StateAgentInterface $stateAgent = null)
+    public function __construct()
     {
-        $this->state_agent = $stateAgent;
+        $this->errorMappper = new PHPErrorToPSRLevel();
+        $this->messages = [];
+
         $this->setHandlers();
     }
 
+    /**
+     * sets handler for errors (errorHandler()) and throwables (exceptionHandler())
+     *      uses set_error_handler([$instance, 'errorHandler']);
+     *      uses set_exception_handler([$instance, 'exceptionHandler']);
+     * 
+     * https://www.php.net/manual/en/function.set-error-handler
+     */
     public function setHandlers(): void
     {
-        set_error_handler(
-          function(int $level, string $message, string $file = '', int $line = 0): bool {
-            $this->errorHandler($level, $message, $file, $line);
-          }
-        );
-
-        set_exception_handler(function (\Throwable $throwable) : void {
-            $this->exceptionHandler($throwable);
-        });
+        set_error_handler([$this, 'errorHandler']);
+        set_exception_handler([$this, 'exceptionHandler']);
     }
 
-    public function restoreHandlers(): void
+
+    public function resetHandlers(): void
     {
         restore_error_handler();
         restore_exception_handler();
     }
 
     /**
-      * handler for errors
-      * use set_error_handler([$instance, 'errorHandler']);
-      *
-      * https://www.php.net/manual/en/function.set-error-handler
-      *
-      */
-    public function errorHandler(int $level, string $message, string $file = '', int $line = 0): bool
+     * Handles PHP errors and logs them using the specified error level.
+     *
+     * @param int $error The error code.
+     * @param string $message The error message.
+     * @param string $file The file where the error occurred (optional).
+     * @param int $line The line number where the error occurred (optional).
+     * @return bool Returns false to indicate that the error should not be handled by the default PHP error handler.
+     */
+    public function errorHandler(int $error, string $message, string $file = '', int $line = 0): bool
     {
-        $loglevel = self::mapErrorLevelToLogLevel($level);
-        $this->{$loglevel}($message);
+        $level = $this->errorMappper->map($error);
+        $context = ['file' => $file, 'line' => $line];
 
-        return true;
+        $this->log($level, $message, $context);
+
+        return false;
     }
 
-    /*
-    * handler for throwables,
-    * use set_exception_handler([$instance, 'exceptionHandler']);
-    */
+
+    /**
+     * Handles exceptions by logging them with the critical log level.
+     *
+     * @param \Throwable $throwable The exception to handle.
+     * @return void
+     */
     public function exceptionHandler(\Throwable $throwable): void
     {
-        $this->critical($throwable->getMessage(), ['exception' => $throwable]);
+        $message = $throwable->getMessage();
+        $context = ['exception' => $throwable];
+        $this->log(LogLevel::CRITICAL, $message, $context);
     }
 
     public function log($level, $message, array $context = []): void
@@ -88,12 +93,7 @@ class LogLaddy extends \Psr\Log\AbstractLogger
             case LogLevel::INFO:
             case LogLevel::NOTICE:
             case LogLevel::WARNING:
-                if (is_null($this->state_agent)) {
-                    Debugger::visualDump($message, $level, true);
-                } else {
-                    $this->state_agent->addMessage($level, $message, $context);
-                }
-
+                Debugger::visualDump($message, $level, true);
                 break;
 
             case LogLevel::ERROR:
@@ -114,60 +114,82 @@ class LogLaddy extends \Psr\Log\AbstractLogger
         }
     }
 
-    private static function mapErrorLevelToLogLevel(int $level): string
+    private function osd($level, string $message, array $context = array())
     {
-
-      // http://php.net/manual/en/errorfunc.constants.php
-        if (empty(self::$level_mapping)) {
-            self::createErrorLevelMap();
-        }
-
-        if (!isset(self::$level_mapping[$level])) {
-            throw new \Exception(sprintf('%s(%d): %d is unknown', __FUNCTION__, $level, $level));
-        }
-
-        return self::$level_mapping[$level];
+        $this->messages[$level] ??= [];
+        $this->messages[$level][] = [$message, $context];
     }
 
-   /**  Error level meaning, from \Psr\Log\LogLevel.php
-     *
-     * const EMERGENCY = 'emergency';
-     *                 // System is unusable.
-     * const ALERT     = 'alert';
-     *                 // Action must be taken immediately, Example: Entire website down, database unavailable, etc.
-     * const CRITICAL  = 'critical';
-     *                 // Application component unavailable, unexpected exception.
-     * const ERROR     = 'error';
-     *                 // Run time errors that do not require immediate action
-     * const WARNING   = 'warning';
-     *                 // Exceptional occurrences that are not errors, undesirable things that are not necessarily wrong
-     * const NOTICE    = 'notice';
-     *                 // Normal but significant events.
-     * const INFO      = 'info';
-     *                 // Interesting events. User logs in, SQL logs.
-     * const DEBUG     = 'debug';
-     *                 // Detailed debug information.
-     *
-     *
-     *  Error level mapping from \Psr\Log\LogLevel.php & http://php.net/manual/en/errorfunc.constants.php
+
+    /**
+     * System is unusable.
      */
-    private static function createErrorLevelMap(): void
+    public function emergency($message, array $context = array())
     {
-        $critical = array_fill_keys(
-            [E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR, E_USER_ERROR, E_RECOVERABLE_ERROR],
-            LogLevel::CRITICAL
-        );
+        $this->osd(LogLevel::EMERGENCY, $message, $context);
+    }
 
-        $error = array_fill_keys(
-            [E_WARNING, E_CORE_WARNING, E_COMPILE_WARNING, E_USER_WARNING],
-            LogLevel::ERROR
-        );
+    /**
+     * Action must be taken immediately.
+     * Example: Entire website down, database unavailable, etc. This should
+     * trigger the SMS alerts and wake you up.
+     */
+    public function alert($message, array $context = array())
+    {
+        $this->osd(LogLevel::ALERT, $message, $context);
+    }
 
-        $debug = array_fill_keys(
-            [E_NOTICE, E_USER_NOTICE, E_STRICT,E_DEPRECATED,E_USER_DEPRECATED,E_ALL],
-            LogLevel::DEBUG
-        );
+    /**
+     * Critical conditions.
+     * Example: Application component unavailable, unexpected exception.
+     */
+    public function critical($message, array $context = array())
+    {
+        $this->osd(LogLevel::CRITICAL, $message, $context);
+    }
 
-        self::$level_mapping = $critical + $error + $debug;
+    /**
+     * Runtime errors that do not require immediate action but should typically
+     * be logged and monitored.
+     */
+    public function error($message, array $context = array())
+    {
+        $this->osd(LogLevel::ERROR, $message, $context);
+    }
+
+    /**
+     * Exceptional occurrences that are not errors.
+     * Example: Use of deprecated APIs, poor use of an API, undesirable things
+     * that are not necessarily wrong.
+     */
+    public function warning($message, array $context = array())
+    {
+        $this->osd(LogLevel::WARNING, $message, $context);
+    }
+
+    /**
+     * Normal but significant events.
+     */
+    public function notice($message, array $context = array())
+    {
+        $this->osd(LogLevel::NOTICE, $message, $context);
+    }
+
+    /**
+     * Interesting events.
+     * Example: User logs in, SQL logs.
+     */
+    public function info($message, array $context = array())
+    {
+        $this->osd(LogLevel::INFO, $message, $context);
+    }
+
+    /**
+     * Detailed debug information.
+     *
+     */
+    public function debug($message, array $context = array())
+    {
+        $this->osd(LogLevel::DEBUG, $message, $context);
     }
 }
