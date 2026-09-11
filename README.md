@@ -1,7 +1,7 @@
 
 # LogLaddy
-The LogLaddy is an implementation of the PSR-3 Logger Interface, but aimed at user interface messaging
-It relies on \Psr\Log\LoggerTrait and \HexMakina\Debugger\Debugger
+The LogLaddy is an implementation of the PSR-3 Logger Interface, but aimed at user interface messaging.
+It relies on \Psr\Log\LoggerTrait and writes direct log output through PHP's `error_log()`.
 
 [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/HexMakina/LogLaddy/badges/quality-score.png?b=main)](https://scrutinizer-ci.com/g/HexMakina/LogLaddy/?branch=main)
 <img src="https://img.shields.io/badge/PSR-3-brightgreen" alt="PSR-3 Compliant" />
@@ -47,4 +47,3 @@ $l->alert($message, array $context = array())
 $l->emergency($message, array $context = array())
 
 ```
-
